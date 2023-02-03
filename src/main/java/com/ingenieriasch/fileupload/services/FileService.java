@@ -48,7 +48,7 @@ public class FileService {
 
 		} catch (IOException ioe) {
 
-			throw new IOException("No pudo guardaste el archivo: " + file.getOriginalFilename(), ioe);
+			throw new IOException("No pudo guardarte el archivo: " + file.getOriginalFilename(), ioe);
 
 		}
 
