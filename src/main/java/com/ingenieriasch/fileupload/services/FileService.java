@@ -8,16 +8,15 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.ingenieriasch.fileupload.exceptions.InvalidContentTypeException;
 import com.ingenieriasch.fileupload.web.payload.UploadResponse;
-
 
 @Service
 public class FileService {
@@ -27,40 +26,37 @@ public class FileService {
 			"application/pdf");
 
 	@PostConstruct
-	//En el arranque crea carpeta ./uploaded-files si no existe
+	// En el arranque crea carpeta ./uploaded-files si no existe
 	private void createUploadFolder() throws IOException {
-		
+
 		if (!Files.exists(UPLOAD_PATH)) {
 			Files.createDirectories(UPLOAD_PATH);
 		}
-		
+
 	}
 
 	public UploadResponse fileUpload(MultipartFile file) throws IOException, InvalidContentTypeException {
 
-		//valido contenttype
 		validateContentType(file.getContentType());
 
-		String fileName = file.getOriginalFilename();
-
-		// genero codigo para insertar antes del nombre del archivo
-		String fileCode = RandomStringUtils.randomAlphanumeric(12);
+		String randomFileName = UUID.randomUUID().toString();
 
 		try (InputStream inputStream = file.getInputStream()) {
-			
-			Path filePath = UPLOAD_PATH.resolve(fileCode + "-" + fileName);
+
+			Path filePath = UPLOAD_PATH.resolve(randomFileName);
 			Files.copy(inputStream, filePath, StandardCopyOption.REPLACE_EXISTING);
-			
+
 		} catch (IOException ioe) {
-			
-			throw new IOException("No pudo guardaste el archivo: " + fileName, ioe);
-			
+
+			throw new IOException("No pudo guardaste el archivo: " + file.getOriginalFilename(), ioe);
+
 		}
-		
+
 		UploadResponse res = new UploadResponse();
-		res.setUrl("/files/".concat(fileCode));
+		res.setUrl("/files/".concat(randomFileName));
 		res.setContentType(file.getContentType());
-		
+		res.setSize(file.getSize());
+
 		return res;
 
 	}
